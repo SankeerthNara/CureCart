@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
 const apiKey = process.env.GEMINI_API_KEY || "";
 // Initialize the AI SDK. It will throw an error if no API key is provided and we try to use it.
-const ai = new GoogleGenerativeAI({ apiKey });
+const ai = new GoogleGenAI({ apiKey });
 
 export class AIService {
   /**

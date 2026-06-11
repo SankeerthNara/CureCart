@@ -13,17 +13,8 @@ export class MedicineService {
     if (!query) {
       results = await MedicineRepository.getMedicines();
     } else {
-      // 1. Fetch all medicines for in-memory fuzzy search (fine for a resume project size)
-      const allMedicines = await MedicineRepository.getMedicines();
-      
-      // 2. Initialize Fuse.js for typo tolerance (e.g., "paractemol" -> "paracetamol")
-      const fuse = new Fuse(allMedicines, {
-        keys: ['name', 'description', 'category'],
-        threshold: 0.4, // Lower is more strict. 0.4 allows some typos.
-      });
-
-      const fuseResults = fuse.search(query);
-      results = fuseResults.map(res => res.item);
+      // Delegate to Prisma database ILIKE search directly
+      results = await MedicineRepository.getMedicines(query);
     }
     
     // AI ENGINE FALLBACK

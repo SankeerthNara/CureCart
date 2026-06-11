@@ -16,11 +16,13 @@ export class MedicineRepository {
             { manufacturer: { contains: searchTerm, mode: 'insensitive' } },
           ],
         },
+        take: 24,
         orderBy: { name: 'asc' },
       });
     }
 
     return prisma.medicine.findMany({
+      take: 24,
       orderBy: { name: 'asc' },
     });
   }

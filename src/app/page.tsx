@@ -7,9 +7,9 @@ export const dynamic = 'force-dynamic'; // Ensure we fetch fresh data
 export default async function Home({
   searchParams,
 }: {
-  searchParams: { q?: string };
+  searchParams: Promise<{ q?: string }>;
 }) {
-  const query = searchParams.q;
+  const { q: query } = await searchParams;
   const medicines = await MedicineService.searchMedicines(query);
 
   return (

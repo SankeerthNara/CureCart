@@ -4,9 +4,10 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import HealthBotClient from "./HealthBotClient"; // We'll create this client component next
 
-export default async function MedicineDetailPage({ params }: { params: { id: string } }) {
+export default async function MedicineDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   const medicine = await prisma.medicine.findUnique({
-    where: { id: params.id }
+    where: { id: resolvedParams.id }
   });
 
   if (!medicine) {
