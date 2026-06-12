@@ -18,6 +18,7 @@ export async function updateProfile(formData: FormData) {
   const city = formData.get("city") as string;
   const state = formData.get("state") as string;
   const zipCode = formData.get("zipCode") as string;
+  const image = formData.get("image") as string;
 
   try {
     await prisma.user.update({
@@ -29,6 +30,7 @@ export async function updateProfile(formData: FormData) {
         city: city || null,
         state: state || null,
         zipCode: zipCode || null,
+        ...(image ? { image } : {})
       }
     });
 

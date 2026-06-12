@@ -39,7 +39,11 @@ export default async function ProfilePage() {
           <div className="px-8 pb-8 relative">
             <div className="absolute -top-12 left-8 border-4 border-white rounded-full bg-white overflow-hidden h-24 w-24">
               {user.image ? (
-                <Image src={user.image} alt={user.name || "Profile"} fill className="object-cover" />
+                user.image.startsWith('data:image') ? (
+                  <img src={user.image} alt={user.name || "Profile"} className="w-full h-full object-cover" />
+                ) : (
+                  <Image src={user.image} alt={user.name || "Profile"} fill className="object-cover" />
+                )
               ) : (
                 <div className="h-full w-full bg-gray-200 flex items-center justify-center text-gray-500 text-3xl font-bold">
                   {user.name?.charAt(0) || user.email?.charAt(0)?.toUpperCase()}

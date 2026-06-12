@@ -10,6 +10,22 @@ export function EditProfileForm({ user }: { user: any }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [imagePreview, setImagePreview] = useState<string | null>(user.image || null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setError('Image must be less than 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -17,6 +33,10 @@ export function EditProfileForm({ user }: { user: any }) {
     setError('');
     
     const formData = new FormData(e.currentTarget);
+    if (imagePreview) {
+      formData.set('image', imagePreview);
+    }
+    
     const result = await updateProfile(formData);
     
     if (result.error) {
@@ -35,6 +55,37 @@ export function EditProfileForm({ user }: { user: any }) {
           {error}
         </div>
       )}
+
+      <div className="flex flex-col items-center gap-4 mb-6">
+        <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-gray-100 bg-gray-50 flex items-center justify-center">
+          {imagePreview ? (
+            <img src={imagePreview} alt="Profile preview" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-gray-400 text-sm">No Image</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <label htmlFor="imageUpload" className="cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 px-4 py-2 rounded-full transition-colors">
+            Change Photo
+          </label>
+          <input 
+            id="imageUpload" 
+            type="file" 
+            accept="image/*" 
+            className="hidden" 
+            onChange={handleImageChange}
+          />
+          {imagePreview && imagePreview !== user.image && (
+            <button 
+              type="button" 
+              onClick={() => setImagePreview(user.image || null)}
+              className="text-sm font-medium text-red-600 hover:text-red-700 bg-red-50 px-4 py-2 rounded-full transition-colors"
+            >
+              Reset
+            </button>
+          )}
+        </div>
+      </div>
 
       <div className="space-y-2">
         <label htmlFor="name" className="text-sm font-medium text-gray-700">Full Name</label>
