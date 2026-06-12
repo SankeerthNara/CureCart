@@ -1,6 +1,29 @@
+"use client";
+
 import Link from 'next/link';
+import { useSession, signOut } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 
 export function Navbar() {
+  const { data: session, status } = useSession();
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetch('/api/cart')
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.items) {
+            const count = data.items.reduce((acc: number, item: any) => acc + item.quantity, 0);
+            setCartCount(count);
+          }
+        })
+        .catch(err => console.error("Failed to fetch cart:", err));
+    } else {
+      setCartCount(0);
+    }
+  }, [status]);
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -34,13 +57,29 @@ export function Navbar() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full">
-              0
+              {cartCount}
             </span>
           </Link>
 
-          <Link href="/login" className="hidden md:inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-            Login / Sign up
-          </Link>
+          {status === 'loading' ? (
+            <div className="h-9 w-24 bg-gray-200 animate-pulse rounded-md"></div>
+          ) : session ? (
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium text-gray-700 hidden sm:inline-block">
+                Hi, {session.user?.name?.split(' ')[0] || 'User'}
+              </span>
+              <button
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="hidden md:inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-100 rounded-md shadow-sm hover:bg-blue-100 focus:outline-none transition-colors"
+              >
+                Sign out
+              </button>
+            </div>
+          ) : (
+            <Link href="/login" className="hidden md:inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+              Login / Sign up
+            </Link>
+          )}
         </div>
       </div>
     </nav>
