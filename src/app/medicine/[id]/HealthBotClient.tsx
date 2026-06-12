@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
+import ReactMarkdown from 'react-markdown';
+
 export default function HealthBotClient({ medicineName }: { medicineName: string }) {
   const [messages, setMessages] = useState<{role: 'user' | 'bot', text: string}[]>([
     { role: 'bot', text: `Hi! I am the CureCart AI Medical Assistant. I use verified data from the FDA, WHO, and Mayo Clinic. What would you like to know about ${medicineName}?` }
@@ -44,8 +46,24 @@ export default function HealthBotClient({ medicineName }: { medicineName: string
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto mb-4 space-y-4 max-h-[400px]">
         {messages.map((msg, i) => (
-          <div key={i} className={`p-3 rounded-lg text-sm ${msg.role === 'user' ? 'bg-blue-600 text-white ml-8' : 'bg-gray-100 text-gray-800 mr-8 whitespace-pre-wrap'}`}>
-            {msg.text}
+          <div key={i} className={`p-3 rounded-xl text-sm ${msg.role === 'user' ? 'bg-blue-600 text-white ml-8 rounded-tr-sm' : 'bg-gray-100 text-gray-800 mr-8 rounded-tl-sm'}`}>
+            {msg.role === 'user' ? (
+              <div className="whitespace-pre-wrap">{msg.text}</div>
+            ) : (
+              <div className="text-gray-800">
+                <ReactMarkdown
+                  components={{
+                    ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2 space-y-1" {...props} />,
+                    ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2 space-y-1" {...props} />,
+                    li: ({node, ...props}) => <li className="text-gray-800" {...props} />,
+                    strong: ({node, ...props}) => <strong className="font-bold text-gray-900" {...props} />,
+                    p: ({node, ...props}) => <p className="mb-2 last:mb-0 leading-relaxed" {...props} />
+                  }}
+                >
+                  {msg.text}
+                </ReactMarkdown>
+              </div>
+            )}
           </div>
         ))}
         {loading && (
