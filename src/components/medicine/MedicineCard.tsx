@@ -62,7 +62,10 @@ export function MedicineCard({ medicine }: { medicine: MedicineProps }) {
             <h3 itemProp="name" className="font-bold text-[15px] text-gray-900 line-clamp-2 leading-tight group-hover:text-emerald-700 transition-colors">
               {medicine.name}
             </h3>
-            <span itemProp="price" className="text-lg font-black text-emerald-600 shrink-0">₹{medicine.price.toFixed(2)}</span>
+            <div className="flex flex-col items-end shrink-0">
+              <span className="text-[9px] text-gray-400 font-bold uppercase mb-0.5">MRP</span>
+              <span itemProp="price" className="text-lg font-black text-emerald-600 leading-none">₹{medicine.price.toFixed(2)}</span>
+            </div>
           </div>
           
           <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider truncate mb-2">
