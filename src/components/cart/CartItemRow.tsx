@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Minus, Plus, Trash2 } from "lucide-react";
@@ -22,55 +22,58 @@ interface CartItemRowProps {
 
 export function CartItemRow({ item }: CartItemRowProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
   const [optimisticQty, setOptimisticQty] = useState(item.quantity);
+  const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Keep local state in sync if server state updates externally
-  if (item.quantity !== optimisticQty && !loading) {
+  useEffect(() => {
     setOptimisticQty(item.quantity);
-  }
+  }, [item.quantity]);
 
-  const handleUpdateQuantity = async (newQuantity: number) => {
+  const handleUpdateQuantity = (newQuantity: number) => {
     if (newQuantity <= 0) return;
     if (newQuantity > item.medicine.stock) {
       alert(`Only ${item.medicine.stock} left in stock.`);
       return;
     }
 
-    // Optimistically update the UI instantly for a snappy feel
+    // 1. Optimistically update the UI instantly for a snappy feel (No blocking loading state!)
     setOptimisticQty(newQuantity);
-    setLoading(true);
 
-    try {
-      const res = await fetch("/api/cart", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ medicineId: item.medicine.id, quantity: newQuantity }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to update quantity");
-      }
-
-      router.refresh();
-      // Notice we do NOT set loading to false here, because router.refresh() is async.
-      // Next.js will re-render the page and mount a fresh component (or update props),
-      // which will naturally reset our loading state when the server fetch completes!
-      // However, as a fallback in case refresh takes too long, we can reset it after 1s:
-      setTimeout(() => setLoading(false), 800);
-    } catch (error: any) {
-      alert(error.message);
-      setOptimisticQty(item.quantity); // Revert on failure
-      setLoading(false);
+    // 2. Clear any previously scheduled network request
+    if (syncTimerRef.current) {
+      clearTimeout(syncTimerRef.current);
     }
+
+    // 3. Schedule the actual server sync after they finish clicking (Debounce)
+    syncTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/cart", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ medicineId: item.medicine.id, quantity: newQuantity }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to update quantity");
+        }
+
+        // Only refresh the page routing data (for subtotal) once the final click is securely saved
+        router.refresh();
+      } catch (error: any) {
+        alert(error.message);
+        setOptimisticQty(item.quantity); // Revert on failure
+      }
+    }, 400); // Wait 400ms after the last click before hitting the database
   };
 
   const handleRemove = async () => {
     if (!confirm("Are you sure you want to remove this item from your cart?")) return;
 
     try {
-      setLoading(true);
+      setIsRemoving(true);
       const res = await fetch(`/api/cart?medicineId=${item.medicine.id}`, {
         method: "DELETE",
       });
@@ -81,15 +84,15 @@ export function CartItemRow({ item }: CartItemRowProps) {
       }
 
       router.refresh();
-      // Keep loading true while Next.js re-fetches the page so the item stays dimmed
+      // Keep isRemoving true while Next.js re-fetches the page so the item stays dimmed
     } catch (error: any) {
       alert(error.message);
-      setLoading(false);
+      setIsRemoving(false);
     }
   };
 
   return (
-    <li className={`p-6 flex items-center transition-opacity duration-200 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
+    <li className={`p-6 flex items-center transition-opacity duration-200 ${isRemoving ? 'opacity-50 pointer-events-none' : ''}`}>
       <div className="flex-shrink-0 w-24 h-24 bg-gray-50 rounded-lg flex items-center justify-center p-2 relative">
         {item.medicine.image ? (
           <Image src={item.medicine.image} alt={item.medicine.name} fill className="object-contain" />
@@ -111,8 +114,8 @@ export function CartItemRow({ item }: CartItemRowProps) {
             <button 
               type="button"
               onClick={() => handleUpdateQuantity(optimisticQty - 1)}
-              disabled={optimisticQty <= 1 || loading}
-              className="w-9 h-full flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              disabled={optimisticQty <= 1}
+              className="w-9 h-full flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors cursor-pointer disabled:cursor-not-allowed"
             >
               <Minus className="w-3.5 h-3.5" />
             </button>
@@ -122,8 +125,8 @@ export function CartItemRow({ item }: CartItemRowProps) {
             <button 
               type="button"
               onClick={() => handleUpdateQuantity(optimisticQty + 1)}
-              disabled={optimisticQty >= item.medicine.stock || loading}
-              className="w-9 h-full flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              disabled={optimisticQty >= item.medicine.stock}
+              className="w-9 h-full flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors cursor-pointer disabled:cursor-not-allowed"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
