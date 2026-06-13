@@ -12,15 +12,11 @@ export interface MedicineProps {
   requiresPrescription: boolean;
   image: string | null;
   stock: number;
+  packaging?: string | null;
+  composition?: string | null;
 }
 
 export function MedicineCard({ medicine }: { medicine: MedicineProps }) {
-  const packagingMatch = medicine.description?.match(/Packaging:\s*(.*?)\.\s*Salt Composition:/);
-  const packaging = packagingMatch ? packagingMatch[1] : null;
-
-  const saltMatch = medicine.description?.match(/Salt Composition:\s*(.*)/);
-  const saltComposition = saltMatch ? saltMatch[1] : null;
-
   return (
     <Card itemScope itemType="http://schema.org/Product" className="overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col h-full bg-white border-gray-100">
       <Link href={`/medicine/${medicine.id}`} className="relative aspect-square w-full bg-gray-50 flex items-center justify-center p-4 group">
@@ -52,13 +48,13 @@ export function MedicineCard({ medicine }: { medicine: MedicineProps }) {
         </Link>
         <p itemProp="brand" className="text-xs text-gray-500 mt-1">{medicine.manufacturer || 'Unknown Manufacturer'}</p>
         
-        {packaging && (
-          <p className="text-xs font-medium text-blue-600 mt-1 bg-blue-50 w-fit px-2 py-0.5 rounded-full border border-blue-100">{packaging}</p>
+        {medicine.packaging && (
+          <p className="text-xs font-medium text-blue-600 mt-1 bg-blue-50 w-fit px-2 py-0.5 rounded-full border border-blue-100">{medicine.packaging}</p>
         )}
         
-        {saltComposition && (
-          <p className="text-xs text-gray-500 mt-2 line-clamp-2" title={saltComposition}>
-            <span className="font-semibold text-gray-700">Composition:</span> {saltComposition}
+        {medicine.composition && (
+          <p className="text-xs text-gray-500 mt-2 line-clamp-2" title={medicine.composition}>
+            <span className="font-semibold text-gray-700">Composition:</span> {medicine.composition}
           </p>
         )}
         

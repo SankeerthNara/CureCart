@@ -47,13 +47,9 @@ export default async function MedicineDetailPage({ params }: { params: Promise<{
           {/* Parsed Description Details */}
           {(() => {
             const desc = medicine.description || "";
-            const mMatch = desc.match(/Manufactured by (.*?)(?:\. Packaging:|\. Salt Composition:|$)/i);
-            const pMatch = desc.match(/Packaging: (.*?)(?:\. Salt Composition:|$)/i);
-            const sMatch = desc.match(/Salt Composition: (.*)$/i);
-            
-            const manufacturer = mMatch ? mMatch[1].trim() : null;
-            const packaging = pMatch ? pMatch[1].trim() : null;
-            const composition = sMatch ? sMatch[1].trim() : null;
+            const manufacturer = medicine.manufacturer;
+            const packaging = medicine.packaging;
+            const composition = medicine.composition;
 
             if (manufacturer || packaging || composition) {
               return (
@@ -83,12 +79,12 @@ export default async function MedicineDetailPage({ params }: { params: Promise<{
               );
             }
 
-            return (
+            return desc ? (
               <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl mb-8">
                 <h3 className="font-semibold text-gray-900 mb-2 text-sm uppercase tracking-wider">Description</h3>
-                <p className="text-gray-700 text-sm leading-relaxed">{desc || "No description available for this product."}</p>
+                <p className="text-gray-700 text-sm leading-relaxed">{desc}</p>
               </div>
-            );
+            ) : null;
           })()}
 
           <div className="flex gap-4">
