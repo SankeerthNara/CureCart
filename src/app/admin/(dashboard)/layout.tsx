@@ -13,7 +13,7 @@ export default async function AdminLayout({
 
   // Ensure user is authenticated and is an ADMIN
   if (!session) {
-    redirect("/login");
+    redirect("/admin/login");
   }
 
   if (session.user.role !== "ADMIN") {
