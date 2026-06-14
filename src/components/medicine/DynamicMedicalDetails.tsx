@@ -99,7 +99,7 @@ export function DynamicMedicalDetails({ medicineId, medicineName }: { medicineId
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         {/* Side Effects */}
         {details.sideEffects?.length > 0 && (
           <div className="bg-gradient-to-br from-orange-50/80 to-orange-50/30 p-8 rounded-3xl border border-orange-100/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
